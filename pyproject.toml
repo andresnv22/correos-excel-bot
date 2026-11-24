@@ -1,0 +1,19 @@
+[project]
+name = "correos-excel-bot"
+version = "0.1.0"
+description = "Automatización de correos y facturas PDF hacia Excel/CSV con deduplicación en SQLite"
+requires-python = ">=3.11"
+dependencies = [
+    "openpyxl>=3.1.5",
+    "pypdf>=5.0.0",
+    "python-dotenv>=1.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

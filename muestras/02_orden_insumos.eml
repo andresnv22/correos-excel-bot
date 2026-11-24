@@ -1,0 +1,13 @@
+From: pedidos@insumospro.com
+To: compras@empresa.com
+Subject: Orden de compra #ORD-8842 confirmada
+Date: Tue, 24 Nov 2026 11:45:00 -0500
+Message-ID: <demo-ord-8842@insumospro.com>
+Content-Type: text/plain; charset="utf-8"
+
+Confirmación de pedido:
+Orden ORD-8842
+NIT: 800112233-4
+Valor total: COP 620.000
+
+Entrega programada para mañana.
