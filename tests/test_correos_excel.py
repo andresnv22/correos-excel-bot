@@ -2,6 +2,8 @@
 import csv
 from email.message import EmailMessage
 
+import pytest
+
 from openpyxl import load_workbook
 
 from app import exporter, extractor, main
@@ -95,3 +97,14 @@ def test_deduplicacion_y_exportacion_xlsx_csv(tmp_path):
     with csv_p.open(encoding="utf-8-sig") as f:
         rows = list(csv.reader(f))
     assert len(rows) == 2
+
+
+def test_carpeta_inexistente_no_genera_reporte_vacio(tmp_path):
+    with pytest.raises(FileNotFoundError, match="No existe la carpeta"):
+        main.procesar_eml_dir(tmp_path / "faltante", tmp_path / "test.db", tmp_path / "out")
+    assert not (tmp_path / "out.xlsx").exists()
+
+
+def test_limite_imap_invalido_falla_antes_de_conectar(tmp_path):
+    with pytest.raises(ValueError, match="--limit"):
+        main.procesar_imap(tmp_path / "test.db", tmp_path / "out", limit=0)
