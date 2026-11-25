@@ -14,6 +14,8 @@ from . import exporter, extractor, storage
 
 def procesar_eml_dir(carpeta: str | Path, db_path: str | Path, out_prefix: str | Path) -> tuple[int, Path, Path]:
     carpeta_p = Path(carpeta)
+    if not carpeta_p.is_dir():
+        raise FileNotFoundError(f"No existe la carpeta de correos: {carpeta_p}")
     with storage.conectar(db_path) as conn:
         nuevos = 0
         for archivo in sorted(carpeta_p.glob("*.eml")):
@@ -28,6 +30,8 @@ def procesar_eml_dir(carpeta: str | Path, db_path: str | Path, out_prefix: str |
 
 
 def procesar_imap(db_path: str | Path, out_prefix: str | Path, limit: int = 50) -> tuple[int, Path, Path]:
+    if limit < 1:
+        raise ValueError("--limit debe ser mayor que cero")
     host = os.environ.get("IMAP_HOST", "").strip()
     user = os.environ.get("IMAP_USER", "").strip()
     password = os.environ.get("IMAP_PASS", "").strip()
@@ -43,12 +47,18 @@ def procesar_imap(db_path: str | Path, out_prefix: str | Path, limit: int = 50) 
         imap = imaplib.IMAP4_SSL(host, port)
         try:
             imap.login(user, password)
-            imap.select(folder, readonly=True)
+            status, _ = imap.select(folder, readonly=True)
+            if status != "OK":
+                raise RuntimeError(f"No se pudo abrir la carpeta IMAP: {folder}")
             criterio = "UNSEEN" if unseen_only else "ALL"
-            _, datos = imap.search(None, criterio)
+            status, datos = imap.search(None, criterio)
+            if status != "OK":
+                raise RuntimeError(f"Falló la búsqueda IMAP: {criterio}")
             uids = (datos[0] or b"").split()[-limit:]
             for uid in uids:
-                _, fetched = imap.fetch(uid, "(BODY.PEEK[])")
+                status, fetched = imap.fetch(uid, "(BODY.PEEK[])")
+                if status != "OK":
+                    raise RuntimeError(f"Falló la lectura del correo IMAP {uid!r}")
                 if not fetched or not fetched[0]:
                     continue
                 crudo = fetched[0][1]
